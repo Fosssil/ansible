@@ -1,0 +1,53 @@
+---
+- name: Launch EC2 Instance with Multiple Tags (Idempotent)
+  hosts: localhost
+  gather_facts: False
+
+  vars:
+    aws_access_key: "your_aws_access_key"
+    aws_secret_key: "your_aws_secret_key"
+    region: "your_aws_region"
+    instance_type: "t2.micro"
+    ami_id: "ami-xxxxxxxxxxxxxxxxx" # Replace with your desired AMI ID
+    key_name: "your_key_pair_name"
+    security_group: "your_security_group"
+    subnet_id: "your_subnet_id"
+
+    # Multiple tags
+    instance_tags:
+      - key: Name
+        value: "MyInstance"
+      - key: Environment
+        value: "Production"
+      - key: Department
+        value: "IT"
+
+  tasks:
+    - name: Check if EC2 instances with specified tags already exist
+      ec2_instance_info:
+        aws_access_key: "{{ aws_access_key }}"
+        aws_secret_key: "{{ aws_secret_key }}"
+        region: "{{ region }}"
+        filters:
+          "tag:Name": "MyInstance"
+          "tag:Environment": "Production"
+          "tag:Department": "IT"
+      register: existing_instances
+
+    - name: Launch EC2 Instance only if instances do not exist
+      ec2_instance:
+        key_name: "{{ key_name }}"
+        group: "{{ security_group }}"
+        instance_type: "{{ instance_type }}"
+        image_id: "{{ ami_id }}"
+        wait: true
+        region: "{{ region }}"
+        vpc_subnet_id: "{{ subnet_id }}"
+        count: 1
+        instance_tags: "{{ instance_tags }}"
+      when: existing_instances.instances | length == 0 # Only launch if no instances with specified tags exist
+
+    - name: Print EC2 instance details
+      debug:
+        var: ec2.instances[0].public_dns_name
+      when: existing_instances.instances | length == 0 # Only print details if a new instance is launched

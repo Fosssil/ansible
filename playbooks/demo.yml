@@ -1,0 +1,43 @@
+---
+- name: Launch EC2 Instances
+  hosts: localhost
+  gather_facts: False # We don't need to gather facts from the target machine
+
+  vars:
+    # remeber to put acces_key and secret_key in vault
+    aws_access_key: "your_aws_access_key_location"
+    aws_secret_key: "your_aws_secret_key_location"
+    region: "your_aws_region"
+    instance_type: "t2.micro"
+    ami_id: "ami-xxxxxxxxxxxxxxxxx" # Replace with your desired AMI ID
+    key_name: "your_key_pair_name"
+    security_group: "your_security_group"
+    subnet_id: "your_subnet_id"
+
+    # Multiple tags
+    instance_tags:
+      - key: Name
+        value: "MyInstance"
+      - key: Environment
+        value: "Production"
+      - key: Department
+        value: "IT"
+
+  tasks:
+    - name: Launch EC2 Instance
+      ec2_instance:
+        key_name: "{{ key_name }}"
+        group: "{{ security_group }}"
+        instance_type: "{{ instance_type }}"
+        image_id: "{{ ami_id }}"
+        wait: true
+        region: "{{ region }}"
+        vpc_subnet_id: "{{ subnet_id }}"
+        count: 1
+        instance_tags:
+          Name: "MyInstance"
+      register: ec2
+
+    - name: Print EC2 instance details
+      debug:
+        var: ec2.instances[0].public_dns_name

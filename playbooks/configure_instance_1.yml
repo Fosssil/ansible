@@ -1,0 +1,8 @@
+- hosts: localhost
+  tasks:
+    - name: "resistering"
+      amazon.aws.ec2_instance:
+      register: ec2.instance
+    - name: Print EC2 instance details
+      debug:
+        var: ec2.instances[0].public_ip_address

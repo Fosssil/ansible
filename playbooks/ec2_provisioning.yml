@@ -1,0 +1,73 @@
+- name: Launch EC2 Instances
+  hosts: localhost
+  gather_facts: false # We don't need to gather facts from the target machine
+
+  vars:
+    # remeber to put acces_key and secret_key in vault
+    aws_access_key: ~/.aws/credentials
+    aws_secret_key: ~/.aws/credentials
+    key_name: "ansible"
+    region: "ap-south-1"
+    instance_type: "t2.micro"
+    ami_id: "ami-0c84181f02b974bc3" # Replace with your desired AMI ID
+
+  tasks:
+    - name: Launch EC2 Instance
+      amazon.aws.ec2_instance:
+        key_name: "{{ key_name }}"
+        instance_type: "{{ instance_type }}"
+        image_id: "{{ ami_id }}"
+        wait: true
+        region: "{{ region }}"
+        count: 1
+        tags:
+          Name: "My_Instance1"
+          Country: "IN"
+      register: ec2_in
+      notify: Displaying EC2 Instance state
+
+    - name: Launch EC2 Instance
+      amazon.aws.ec2_instance:
+        key_name: "{{ key_name }}"
+        instance_type: "{{ instance_type }}"
+        image_id: "{{ ami_id }}"
+        wait: true
+        region: "{{ region }}"
+        count: 1
+        tags:
+          Name: "My_Instance2"
+          Country: "US"
+      register: ec2_us
+      notify: Displaying EC2 Instance state
+
+  handlers: # remeber to check content in notify keyword
+    - name: Displaying EC2 Instance state # remember that this should match notify keyword
+      ansible.builtin.debug:
+        msg: | # it is used for multiline string
+          {% if ec2_in.changed and ec2_us.changed %}
+          EC2 Instances launched successfully.
+          {% endif %}
+
+    - name: Display message if IN instance is not launched
+      ansible.builtin.fail:
+        msg: "EC2 instance in IN not launched"
+      when: not ec2_in.changed
+
+    - name: Display message if US instance is not launched
+      ansible.builtin.fail:
+        msg: "EC2 instance in US not launched"
+      when: not ec2_us.changed
+# - handlers:
+# - name: Print EC2 instance status for IN
+#   ansible.builtin.debug:
+#     msg: "Instance 1 launched successfully" ##  var: ec2_in
+#   when: ec2_in.changed
+
+# - name: Print EC2 instance details for US
+#   ansible.builtin.debug:
+#     msg: "Instance 2 launched successfully" ##  var: ec2_us
+#   when: ec2_us.changed
+
+# {% if ec2_us.changed %}
+#          EC2 Instance US launched successfully.
+#          {% endif %}

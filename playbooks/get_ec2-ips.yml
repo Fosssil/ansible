@@ -1,0 +1,21 @@
+- name: Get EC2 Instance IPs
+  hosts: localhost # This playbook runs locally
+
+  tasks:
+    - name: Gather EC2 instance information
+      amazon.aws.ec2_instance_info:
+      #  region: "ap-south-1" # This is an example of filtering
+      register: ec2_info
+
+    - name: Storing file in localhost
+      ansible.builtin.copy:
+        content: "{{ ec2_info.instances | map(attribute='public_ip_address') | list }}"
+        dest: ~/output.txt
+        mode: "0600"
+      delegate_to: localhost # : copy content={{ ec2_info.instances | map(attribute='public_ip_address') | list }} dest=~/output.js
+
+    - name: Display Public IPs
+      ansible.builtin.debug:
+        msg: "{{ item.public_ip_address }}"
+      # with_items: "{{ ec2_info.instances | map(attribute='public_ip_address') | list }}"
+      with_items: "{{ ec2_info.instances }}"

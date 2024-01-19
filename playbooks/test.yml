@@ -1,0 +1,8 @@
+- hosts: tag_Country_IN
+  become: true
+  remote_user: ec2-user
+  tasks:
+    - name: "Removing httpd"
+      package:
+        name: "httpd"
+        state: absent
