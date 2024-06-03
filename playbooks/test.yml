@@ -1,8 +1,53 @@
-- hosts: tag_Country_IN
+- name: Install Apache Server
+  # hosts: tag_Country_IN
+  hosts: all
   become: true
   remote_user: ec2-user
   tasks:
-    - name: "Removing httpd"
-      package:
+    - name: "Installing httpd"
+      ansible.builtin.package:
         name: "httpd"
-        state: absent
+        state: present
+
+
+
+
+
+
+
+
+
+# - name: Ensure mk2s user is present
+  ansible.builtin.user:
+    name: mk2s
+    shell: /bin/bash
+    home: /home/mk2s
+    groups: "{{ groups }}"
+    # {% if ansible_hostname == 'maxxdev2' %}
+    # groups: maxx
+    #  {% endif %}
+    password: "$1$QvdRFyjw$dqnJJpmM6fhMAGSXIuui41"
+
+- name: Configure SSH authentication for mk2s user
+  ansible.posix.authorized_key:
+    user: mk2s
+    state: present
+    key: "{{ lookup('file', 'ssh_keys/mk2s_rsa.pub') }}"
+    path: ~/.ssh/authorized_keys
+
+- name: Ensure mailman user is present
+  ansible.builtin.user:
+    name: mailman
+    shell: /bin/false
+    home: /var/mailman
+
+- name: Ensure jmiller user is absent
+  ansible.builtin.user:
+    name: jmiller
+    state: absent
+
+- name: Ensure jmiller group is absent
+  ansible.builtin.group:
+    name: jmiller
+    state: absent
+#}

@@ -1,0 +1,39 @@
+- name: To setup and configure Haproxy
+  hosts: haproxy
+  become: true
+  gather_facts: true
+
+  vars:
+    mode: "644"
+    user: "root"
+    group: "root"
+
+  tasks:
+    - name: Installing Haproxy
+      ansible.builtin.package:
+        name: haproxy
+        state: present
+
+    - name: Copying ssl certificates
+      ansible.builtin.copy:
+        src: "haproxy.pem"
+        dest: "/etc/ssl/private/haproxy.pem"
+        mode: "{{ mode }}"
+        owner: "{{ user }}"
+        group: "{{ group }}"
+
+    - name: Configure HAProxy configuration file
+      ansible.builtin.copy:
+        src: "haproxy-1.cfg"
+        dest: "/etc/haproxy/haproxy.cfg"
+        mode: "{{ mode }}"
+        owner: "{{ user }}"
+        group: "{{ group }}"
+      notify: "Starting haproxy service"
+
+  handlers:
+    - name: "Starting haproxy service"
+      ansible.builtin.service:
+        name: haproxy
+        state: restarted
+        enabled: true

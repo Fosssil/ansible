@@ -12,7 +12,7 @@
         content: "{{ ec2_info.instances | map(attribute='public_ip_address') | list }}"
         dest: ~/output.txt
         mode: "0600"
-      delegate_to: localhost # : copy content={{ ec2_info.instances | map(attribute='public_ip_address') | list }} dest=~/output.js
+      delegate_to: localhost # local_action: localhost: copy content={{ ec2_info.instances | map(attribute='public_ip_address') | list }} dest=~/output.js
 
     - name: Display Public IPs
       ansible.builtin.debug:

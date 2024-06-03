@@ -1,0 +1,17 @@
+- name: Get Public Keys from remote servers
+  hosts: temp_get_key
+  gather_facts: true
+
+  tasks:
+    - name: Registering pubkeyto variable
+      ansible.builtin.command: /home/sol/.local/share/solana/install/releases/1.18.9/solana-release/bin/solana-keygen pubkey /home/sol/wallet/validator-keypair.json
+      register: file_content
+      changed_when: false
+
+    - name: Append pubkey and hostname to local file
+      ansible.builtin.lineinfile:
+        path: /home/fossil/keys.txt
+        line: "{{ file_content.stdout }} {{ ansible_hostname }}"
+        mode: "0600"
+        create: true
+      delegate_to: localhost
